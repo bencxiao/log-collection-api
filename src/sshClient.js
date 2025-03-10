@@ -1,0 +1,63 @@
+const { Client } = require('ssh2');
+
+class SSHClient {
+  constructor() {
+    this.client = new Client();
+  }
+
+  connect(config) {
+    return new Promise((resolve, reject) => {
+      this.client
+        .on('ready', () => {
+          console.log('SSH Connection established');
+          resolve();
+        })
+        .on('error', (err) => {
+          console.error('SSH Connection error:', err);
+          reject(err);
+        })
+        .connect(config);
+    });
+  }
+
+  executeCommand(command) {
+    return new Promise((resolve, reject) => {
+      this.client.exec(command, (err, stream) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        let output = '';
+        let errorOutput = '';
+
+        stream
+          .on('data', (data) => {
+            output += data.toString();
+          })
+          .on('stderr', (data) => {
+            errorOutput += data.toString();
+          })
+          .on('close', (code) => {
+            resolve({
+              code,
+              output,
+              errorOutput
+            });
+          });
+      });
+    });
+  }
+
+  disconnect() {
+    return new Promise((resolve) => {
+      this.client.end();
+      this.client.on('end', () => {
+        console.log('SSH Connection closed');
+        resolve();
+      });
+    });
+  }
+}
+
+module.exports = SSHClient; 
