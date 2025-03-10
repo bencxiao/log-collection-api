@@ -1,6 +1,7 @@
 const express = require('express');
 const SSHClient = require('./sshClient');
 const sshConfig = require('./config/ssh.config');
+const LogParameterValidator = require('./utils/validators');
 
 function configureApp(app) {
   app.use(express.json());
@@ -12,27 +13,43 @@ function configureApp(app) {
 
   // Log collection endpoint
   app.get('/logs/collect', async (req, res) => {
-    const { logFile = '/var/log' } = req.query;
+    const { logFile = '/var/log/large_log.log', keyWord, lines = 100 } = req.query;
+    
+    // Validate lines parameter
+    const lineValidation = LogParameterValidator.validateLines(lines);
+    if (!lineValidation.isValid) {
+      return res.status(400).json({
+        success: false,
+        error: lineValidation.error.message,
+        details: lineValidation.error.details
+      });
+    }
 
     const sshClient = new SSHClient();
     
     try {
-      // Connect to the remote server using config
       console.log('Connecting to EC2 instance...');
       await sshClient.connect(sshConfig);
       console.log('Successfully connected to EC2');
 
-      // Execute command to read logs
-      const command = `sudo tail -n 1000 ${logFile}`;
+      // Build command to get logs
+      let command;
+      if (keyWord) {
+        // Get all matching lines first, then take the last N lines
+        command = `sudo cat ${logFile} | grep -i "${keyWord}" | tail -n ${lineValidation.value}`;
+      } else {
+        // Get all lines first, then take the last N lines
+        command = `sudo cat ${logFile} | tail -n ${lineValidation.value}`;
+      }
+
       const result = await sshClient.executeCommand(command);
-      
-      // Disconnect after command execution
       await sshClient.disconnect();
 
-      // Return the results
       res.json({
         success: true,
         logFile,
+        keyWord: keyWord || null,
+        lines: lineValidation.value,
         logs: result.output,
         error: result.errorOutput,
         instance: sshConfig.host
@@ -43,7 +60,7 @@ function configureApp(app) {
       res.status(500).json({
         success: false,
         error: error.message,
-        details: 'Make sure your EC2 instance is running and the security group allows inbound SSH (port 22)'
+        details: error.details
       });
     }
   });
