@@ -9,7 +9,7 @@ const sshConfig = [{
   readyTimeout: 5000,
 },
 {
-  host: 'ec2-35-92-134-56.us-west-2.compute.amazonaws.com', 
+  host: 'ec2-54-191-0-147.us-west-2.compute.amazonaws.com', 
   port: 22,
   username: 'ec2-user',  
   privateKey: fs.readFileSync(path.join(__dirname, '../../ec2-key.pem')),
