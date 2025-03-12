@@ -1,7 +1,8 @@
 {
-  "name": "log-collection",
-  "version": "0.1.0",
+  "name": "log-collection-dashboard",
   "private": true,
+  "version": "0.1.0",
+  "proxy": "http://localhost:3000/",
   "dependencies": {
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
@@ -13,7 +14,8 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "set PORT=3001 && react-scripts start",
+    "start": "export PORT=3001 && react-scripts start",
+    "start-windows": "set PORT=3001 && react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
