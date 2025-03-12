@@ -4,6 +4,22 @@ const SSHClient = require('../sshClient');
 
 // Mock SSHClient
 jest.mock('../sshClient');
+jest.mock('../config/ssh.config', () => [
+  { 
+    host: 'server1.example.com',
+    port: 22,
+    username: 'testuser',
+    privateKey: 'testkey',
+    readyTimeout: 5000
+  },
+  {
+    host: 'server2.example.com',
+    port: 22,
+    username: 'testuser',
+    privateKey: 'testkey',
+    readyTimeout: 5000
+  }
+]);
 
 describe('Log Collection API', () => {
   let app;
@@ -29,8 +45,7 @@ describe('Log Collection API', () => {
   });
 
   describe('GET /logs/collect', () => {
-    it('should collect logs from default path if no logFile specified', async () => {
-      // Mock successful log collection
+    it('should collect logs from all servers using default parameters', async () => {
       SSHClient.mockImplementation(() => ({
         connect: jest.fn().mockResolvedValue(),
         executeCommand: jest.fn().mockResolvedValue({
@@ -46,22 +61,35 @@ describe('Log Collection API', () => {
       expect(response.status).toBe(200);
       expect(response.body).toEqual({
         success: true,
-        logFile: '/var/log/large_log.log',
+        logFile: 'large_log.log',
         keyWord: null,
         lines: 100,  // Default value
-        logs: 'test log content',
-        error: '',
-        instance: expect.any(String)
+        results: [
+          {
+            instance: 'server1.example.com',
+            success: true,
+            logs: 'test log content',
+            error: '',
+            details: null
+          },
+          {
+            instance: 'server2.example.com',
+            success: true,
+            logs: 'test log content',
+            error: '',
+            details: null
+          }
+        ]
       });
     });
 
     it('should collect logs from specified log file', async () => {
       const mockSSHClient = {
         connect: jest.fn().mockResolvedValue(),
-        executeCommand: jest.fn().mockResolvedValue({          
+        executeCommand: jest.fn().mockResolvedValue({
           code: 200,
           output: 'specific log content',
-          errorOutput: ''
+          errorOutput: '' 
         }),
         disconnect: jest.fn().mockResolvedValue()
       };
@@ -78,13 +106,26 @@ describe('Log Collection API', () => {
         logFile: 'large_log.log',
         keyWord: null,
         lines: 100,  // Default value
-        logs: 'specific log content',
-        error: '',
-        instance: expect.any(String)
+        results: [
+          {
+            instance: 'server1.example.com',
+            success: true,
+            logs: 'specific log content',
+            error: '',
+            details: null
+          },
+          {
+            instance: 'server2.example.com',
+            success: true,
+            logs: 'specific log content',
+            error: '',
+            details: null
+          }
+        ]
       });
 
       expect(mockSSHClient.executeCommand).toHaveBeenCalledWith(
-        'sudo cat large_log.log | tail -n 100'
+        'sudo cat /var/log/large_log.log | tail -n 100'
       );
     });
 
@@ -94,7 +135,7 @@ describe('Log Collection API', () => {
         executeCommand: jest.fn().mockResolvedValue({
           code: 200,
           output: 'filtered log content with ERROR',
-          errorOutput: ''
+          errorOutput: '' 
         }),
         disconnect: jest.fn().mockResolvedValue()
       };
@@ -114,13 +155,26 @@ describe('Log Collection API', () => {
         logFile: 'large_log.log',
         keyWord: 'ERROR',
         lines: 100,  // Default value
-        logs: 'filtered log content with ERROR',
-        error: '',
-        instance: expect.any(String)
+        results: [
+          {
+            instance: 'server1.example.com',
+            success: true,
+            logs: 'filtered log content with ERROR',
+            error: '',
+            details: null
+          },
+          {
+            instance: 'server2.example.com',
+            success: true,
+            logs: 'filtered log content with ERROR',
+            error: '',
+            details: null
+          }
+        ]
       });
 
       expect(mockSSHClient.executeCommand).toHaveBeenCalledWith(
-        'sudo cat large_log.log | grep -i "ERROR" | tail -n 100'
+        'sudo cat /var/log/large_log.log | grep -i "ERROR" | tail -n 100'
       );
     });
 
@@ -149,14 +203,27 @@ describe('Log Collection API', () => {
         success: true,
         logFile: 'large_log.log',
         keyWord: null,
-        lines: 50,
-        logs: 'last 50 lines of logs',
-        error: '',
-        instance: expect.any(String)
+        lines: 50,  // Default value
+        results: [
+          {
+            instance: 'server1.example.com',
+            success: true,
+            logs: 'last 50 lines of logs',
+            error: '',
+            details: null
+          },
+          {
+            instance: 'server2.example.com',
+            success: true,
+            logs: 'last 50 lines of logs',
+            error: '',
+            details: null
+          }
+        ]
       });
 
       expect(mockSSHClient.executeCommand).toHaveBeenCalledWith(
-        'sudo cat large_log.log | tail -n 50'
+        'sudo cat /var/log/large_log.log | tail -n 50'
       );
     });
 
@@ -188,6 +255,7 @@ describe('Log Collection API', () => {
         error: 'Invalid lines parameter',
         details: 'Lines must be a positive integer number'
       });
+
     });
 
     it('should handle SSH connection errors', async () => {
@@ -205,8 +273,25 @@ describe('Log Collection API', () => {
       expect(response.status).toBe(500);
       expect(response.body).toEqual({
         success: false,
-        error: 'Connection failed',
-        details: 'Error message'
+        logFile: 'large_log.log',
+        keyWord: null,
+        lines: 100,  // Default value
+        results: [
+          {
+            instance: 'server1.example.com',
+            success: false,
+            logs: null,
+            error: 'Connection failed',
+            details: 'Error message'
+          },
+          {
+            instance: 'server2.example.com',
+            success: false,
+            logs: null,
+            error: 'Connection failed',
+            details: 'Error message'
+          }
+        ]
       });
     });
 
@@ -226,9 +311,79 @@ describe('Log Collection API', () => {
       expect(response.status).toBe(500);
       expect(response.body).toEqual({
         success: false,
-        error: 'Command failed',
-        details: 'Error message'
+        logFile: 'large_log.log',
+        keyWord: null,
+        lines: 100,  // Default value
+        results: [
+          {
+            instance: 'server1.example.com',
+            success: false,
+            logs: null,
+            error: 'Command failed',
+            details: 'Error message'
+          },
+          {
+            instance: 'server2.example.com',
+            success: false,
+            logs: null,
+            error: 'Command failed',
+            details: 'Error message'
+          }
+        ]
       });
+    });
+
+    it('should handle partial server failures', async () => {
+      let callCount = 0;
+      const mockSSHClient = {
+        connect: jest.fn().mockResolvedValue(),
+        executeCommand: jest.fn().mockImplementation(() => {
+          callCount++;
+          if (callCount === 1) {
+            return Promise.resolve({
+              code: 200,
+              output: 'server1 logs',
+              errorOutput: ''
+            });
+          }
+          return Promise.reject({
+            message: 'Command failed',
+            details: 'Permission denied'
+          });
+        }),
+        disconnect: jest.fn().mockResolvedValue()
+      };
+
+      SSHClient.mockImplementation(() => mockSSHClient);
+
+      const response = await request(app).get('/logs/collect');
+      
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        logFile: 'large_log.log',
+        keyWord: null,
+        lines: 100,
+        results: [
+          {
+            instance: 'server1.example.com',
+            success: true,
+            logs: 'server1 logs',
+            error: '',
+            details: null
+          },
+          {
+            instance: 'server2.example.com',
+            success: false,
+            logs: null,
+            error: 'Command failed',
+            details: 'Permission denied'
+          }
+        ]
+      });
+
+      // Verify command was called twice (once for each server)
+      expect(mockSSHClient.executeCommand).toHaveBeenCalledTimes(2);
     });
   });
 });

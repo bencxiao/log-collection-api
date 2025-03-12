@@ -1,11 +1,12 @@
 const { Client } = require('ssh2');
 
 class SSHClient {
-  constructor() {
+  constructor(config) {
     this.client = new Client();
+    this.config = config;
   }
 
-  connect(config) {
+  connect() {
     return new Promise((resolve, reject) => {
       this.client
         .on('ready', () => {
@@ -16,7 +17,7 @@ class SSHClient {
           console.error('SSH Connection error:', err);
           reject(err);
         })
-        .connect(config);
+        .connect(this.config);
     });
   }
 

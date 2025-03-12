@@ -13,7 +13,7 @@ function configureApp(app) {
 
   // Log collection endpoint
   app.get('/logs/collect', async (req, res) => {
-    const { logFile = '/var/log/large_log.log', keyWord, lines = 100 } = req.query;
+    const { logFile = 'large_log.log', keyWord, lines = 100 } = req.query;
     
     // Validate lines parameter
     const lineValidation = LogParameterValidator.validateLines(lines);
@@ -25,34 +25,51 @@ function configureApp(app) {
       });
     }
 
-    const sshClient = new SSHClient();
-    
+    // Create SSH clients for each server
+    const clients = sshConfig.map(config => new SSHClient(config));
+
+    // Construct the command with all the parameters, logFile, keyWord and lines
+    let command = `sudo cat /var/log/${logFile}`;
+    if (keyWord) {
+        command += ` | grep -i "${keyWord}"`;
+    }
+    command += ` | tail -n ${lineValidation.value}`;
+
     try {
-      console.log('Connecting to EC2 instance...');
-      await sshClient.connect(sshConfig);
-      console.log('Successfully connected to EC2');
+      // Execute command on all servers
+      const results = await Promise.all(
+        clients.map(async (client, index) => {
+          try {
+            await client.connect();
+            const result = await client.executeCommand(command);
+            return {
+              instance: sshConfig[index].host,
+              success: true,
+              logs: result.output,
+              error: '',
+              details: null
+            };
+          } catch (error) {
+            return {
+              instance: sshConfig[index].host,
+              success: false,
+              logs: null,
+              error: error.message,
+              details: error.details
+            };
+          }
+        })
+      );
 
-      // Build command to get logs
-      let command;
-      if (keyWord) {
-        // Get all matching lines first, then take the last N lines
-        command = `sudo cat ${logFile} | grep -i "${keyWord}" | tail -n ${lineValidation.value}`;
-      } else {
-        // Get all lines first, then take the last N lines
-        command = `sudo cat ${logFile} | tail -n ${lineValidation.value}`;
-      }
+      // Check if any server was successful
+      const anySuccess = results.some(result => result.success);
 
-      const result = await sshClient.executeCommand(command);
-      await sshClient.disconnect();
-
-      res.json({
-        success: true,
+      res.status(anySuccess ? 200 : 500).json({
+        success: anySuccess,
         logFile,
         keyWord: keyWord || null,
         lines: lineValidation.value,
-        logs: result.output,
-        error: result.errorOutput,
-        instance: sshConfig.host
+        results: results
       });
     } catch (error) {
       console.error('Error collecting logs:', error);
@@ -62,13 +79,20 @@ function configureApp(app) {
         error: error.message,
         details: error.details
       });
+    } finally {
+        // Disconnect all clients
+      await Promise.all(
+        clients.map(client => 
+          client.disconnect().catch(err => console.error('Disconnect error:', err))
+        )
+      );
     }
   });
 
   return app;
 }
 
-// Only start the server if this file is run directly
+// Only start the server if this file is run directly, not imported, it will not run in tests
 if (require.main === module) {
   const app = express();
   const port = process.env.PORT || 3000;
