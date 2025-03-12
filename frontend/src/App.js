@@ -33,9 +33,11 @@ function App() {
       if (formData.keyWord) params.append('keyWord', formData.keyWord);
       if (formData.lines) params.append('lines', formData.lines);
 
+      console.log(`fetching logs with params: ${params.toString()}`);
       const response = await fetch(`/logs/collect?${params.toString()}`);
       const data = await response.json();
 
+      console.log(`response: ${JSON.stringify(data)}`);
       if (!data.success) {
         throw new Error(data.error || 'Failed to fetch logs');
       }
