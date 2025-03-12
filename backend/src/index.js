@@ -25,6 +25,26 @@ function configureApp(app) {
       });
     }
 
+    // Validate logFile parameter
+    const logFileValidation = LogParameterValidator.validateLogFile(logFile);
+    if (!logFileValidation.isValid) {
+      return res.status(400).json({
+        success: false, 
+        error: logFileValidation.error.message,
+        details: logFileValidation.error.details
+      });
+    }
+
+    // Validate keyWord parameter
+    const keyWordValidation = LogParameterValidator.validateKeyword(keyWord);
+    if (!keyWordValidation.isValid) {
+      return res.status(400).json({
+        success: false,
+        error: keyWordValidation.error.message, 
+        details: keyWordValidation.error.details
+      });
+    }
+
     // Create SSH clients for each server
     const clients = sshConfig.map(config => new SSHClient(config));
 
