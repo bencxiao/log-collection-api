@@ -2,7 +2,7 @@ const LogParameterValidator = require('../utils/validators');
 
 describe('LogParameterValidator', () => {
   describe('validateLines', () => {
-    test('should validate valid line numbers', () => {
+    it('should validate valid line numbers', () => {
       const result = LogParameterValidator.validateLines('100');
       expect(result).toEqual({
         isValid: true,
@@ -52,8 +52,8 @@ describe('LogParameterValidator', () => {
     });
   });
 
-  describe('validateLogFile', () => {
-    test('should validate valid log file paths', () => {
+  describe('validateLogFileName', () => {
+    it('should validate valid log file paths', () => {
       const validPaths = [
         'test.log',
         'application.log',
@@ -72,13 +72,13 @@ describe('LogParameterValidator', () => {
       });
     });
 
-    test('should use default log file when none provided', () => {
+    it('should use default log file when none provided', () => {
       const result = LogParameterValidator.validateLogFile('');
       expect(result.isValid).toBe(true);
       expect(result.value).toBe('large_log.log');
     });
 
-    test('should reject invalid file names', () => {
+    it('should reject invalid file names', () => {
       const invalidPaths = [
         '../test.log', // Path traversal
         '/root/test.log', // Absolute path
@@ -103,7 +103,7 @@ describe('LogParameterValidator', () => {
   });
 
   describe('validateKeyword', () => {
-    test('should validate valid keywords', () => {
+    it('should validate valid keywords', () => {
       const validKeywords = [
         'error', // Valid keyword
         'TEST', // Valid keyword
@@ -123,7 +123,7 @@ describe('LogParameterValidator', () => {
       });
     });
 
-    test('should handle empty or undefined keywords', () => {
+    it('should handle empty or undefined keywords', () => {
       const emptyKeywords = [
         '',
         null,
@@ -139,7 +139,7 @@ describe('LogParameterValidator', () => {
       });
     });
 
-    test('should reject invalid keywords', () => {
+    it('should reject invalid keywords', () => {
       const invalidKeywords = [
         '1', // Too short
         'a'.repeat(101), // Too long
