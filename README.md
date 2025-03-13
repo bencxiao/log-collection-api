@@ -18,6 +18,15 @@ A Node.js service that provides centralized log collection from multiple servers
 
 ### Architecture Overview
 
+#### High-Level Overview
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   React Frontend│     │ExpressJS Backend│     │  Remote Servers │
+│   (Port: 3001)  │◄───►│   (Port: 3000)  │◄───►│  (SSH Access)   │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+```
+
+
 ```
 Project Structure
 ├── backend/
@@ -33,9 +42,10 @@ Project Structure
 │
 └── frontend/
     ├── src/
-    │   ├── App.jsx           # Main React component
+    │   ├── App.js           # Main React component
     │   ├── App.css          # Application styles
-    │   └── index.jsx        # React entry point
+    │   ├── index.js        # React entry point
+    │   └── __tests__/        # Test files
     └── package.json
 ```
 

@@ -58,7 +58,6 @@ function configureApp(app) {
         command += `tail -n ${lineValidation.value} "${logFileValidation.value}" | tac`;
     }
 
-    console.log('Executing command:', command);
     try {
       // Execute command on all servers, catching unexpected errors as explicitly failed
       const results = await Promise.all(
@@ -96,7 +95,6 @@ function configureApp(app) {
         results: results
       });
     } catch (error) {
-      console.error('Error collecting logs:', error);
       // Handle any errors
       res.status(500).json({
         success: false,
