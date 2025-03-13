@@ -121,6 +121,17 @@ npm test -- --coverage     # Run tests with coverage report
 ### Servers
 Two EC2 t2.xlarge on AWS us-west-2 region
 
+### Access the servers
+1. Open an SSH client.
+2. Locate your private key file. The key used to launch this instance is ec2-key.pem
+3. Run this command, if necessary, to ensure your key is not publicly viewable.
+chmod 400 "ec2-key.pem"
+4. Connect to your instance using its Public DNS:
+ec2-54-191-0-147.us-west-2.compute.amazonaws.com/ec2-35-85-38-21.us-west-2.compute.amazonaws.com
+
+### Private key file
+pem file is attached in ./backend/ec2-key.pem
+
 ### Sample log files
 #### ec2-54-191-0-147.us-west-2.compute.amazonaws.com Server
 '/var/log/large log.log' 1.1G

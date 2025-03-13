@@ -10,7 +10,7 @@ A Node.js service that provides centralized log collection from multiple servers
    - Aggregates results from all servers
 
 2. **Input Validation**
-   - Validates line numbers (positive integer number)
+   - Validates line numbers (positive integer number less than 1000)
    - Sanitizes log file paths
    - Validates keyword filters
 
@@ -105,7 +105,7 @@ Collects logs from configured servers.
 
 **Query Parameters:**
 
-- `logFile` (optional): Path to the log file, subdirectories are allowed (default: 'large_log.log')
+- `logFile` (optional): Path to the log file, subdirectories are allowed (default: '/var/log/large_log.log')
 - `keyWord` (optional): Filter logs by keyword, length needs to be between 2 to 100.
 - `lines` (optional): Number of lines to return (default: 100)
 
@@ -208,5 +208,5 @@ npm test
 
 #### Feature Additions
 - Support for multiple log files in a single request, currently only certain file under /var/log is supported
-- Log aggregation across multiple servers
-- Log compression support, compressed log is a common feature on log server now. 
+- Log aggregation across large fleet of servers. Using multiple log collector to search across large log fleets.
+- Compressed log support
