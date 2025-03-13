@@ -1,4 +1,6 @@
 const LogParameterValidator = require('../utils/validators');
+const path = require('path');
+const DEFAULT_LOG_DIR = '/var/log';
 
 describe('LogParameterValidator', () => {
   describe('validateLines', () => {
@@ -60,14 +62,19 @@ describe('LogParameterValidator', () => {
         'large_log.log',
         'large-log.log',
         'large log.log',
+        'large_log/large_log.log',
+        'large log/large_log.log',
+        'large-log/large_log.log',
+        '  large-log/large_log.log  '
       ];
 
-      validPaths.forEach(path => {
-        const result = LogParameterValidator.validateLogFile(path);
+      validPaths.forEach(validPath => {
+        const result = LogParameterValidator.validateLogFile(validPath);
+        const resolvedPath = path.posix.resolve(DEFAULT_LOG_DIR, validPath.trim());
 
         expect(result).toEqual({
           isValid: true,
-          value: path
+          value: resolvedPath
         });
       });
     });
@@ -75,13 +82,11 @@ describe('LogParameterValidator', () => {
     it('should use default log file when none provided', () => {
       const result = LogParameterValidator.validateLogFile('');
       expect(result.isValid).toBe(true);
-      expect(result.value).toBe('large_log.log');
+      expect(result.value).toBe('/var/log/large_log.log');
     });
 
     it('should reject invalid file names', () => {
       const invalidPaths = [
-        '../test.log', // Path traversal
-        '/root/test.log', // Absolute path
         'test\0.log', // Null byte
         'a'.repeat(256) + '.log', // Too long
         '; rm -rf *', // Command injection
@@ -96,6 +101,25 @@ describe('LogParameterValidator', () => {
           error: {
             message: 'Log file parameter is invalid',
             details: 'Log file must be a valid file path'
+          }
+        });
+      });
+    });
+
+    it('should reject invalid file names with path modification', () => {
+      const invalidPaths = [
+        '../test.log', // Path traversal
+        '/root/test.log' // Absolute path
+      ];
+
+      invalidPaths.forEach(path => {
+        const result = LogParameterValidator.validateLogFile(path);
+
+        expect(result).toEqual({
+          isValid: false,
+          error: {
+            message: 'Log file parameter is invalid',
+            details: 'Resolved path is not within the default log directory'
           }
         });
       });

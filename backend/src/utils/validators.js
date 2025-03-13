@@ -1,3 +1,6 @@
+const path = require("path");
+const DEFAULT_LOG_DIR = '/var/log';
+
 class LogParameterValidator {
   static validateLines(lines) {
     const numLines = parseInt(lines);
@@ -25,15 +28,17 @@ class LogParameterValidator {
   }
 
   static validateLogFile(logFile) {
-    const validFileNameRegex = /^[a-zA-Z0-9_ .-]{0,255}$/;
+    // Allowing for subdirectories path, max file name length is 255 characters
+    const validFileNameRegex = /^(?:[a-zA-Z0-9_ .\-\/]+\/)*[a-zA-Z0-9_ .-]{0,255}$/;
 
-    if (logFile === '') {
+    // Treating empty or space as a default value, fall back to large_log.log
+    if (!logFile || logFile.trim() === '') {
       return {
         isValid: true,
-        value: 'large_log.log'
+        value: '/var/log/large_log.log'
       };
-    }
-
+    }    
+    
     if (!validFileNameRegex.test(logFile)) {
       return {
         isValid: false,
@@ -43,13 +48,27 @@ class LogParameterValidator {
         }
       };
     }
+
+    // Check if the log file is within the default log directory /var/log
+    const resolvedPath = path.posix.resolve(DEFAULT_LOG_DIR, logFile.trim());
+    if (!resolvedPath.startsWith(DEFAULT_LOG_DIR)) {
+      return {
+        isValid: false,
+        error: {
+          message: 'Log file parameter is invalid',
+          details: 'Resolved path is not within the default log directory'
+        }
+      };
+    }
+
     return {
       isValid: true,
-      value: logFile || 'large_log.log' // Default value if logFile is empty
+      value: resolvedPath
     };
   }
 
   static validateKeyword(keyword) {
+    // Allowing for alphanumeric characters, spaces, and common punctuation (._-:), and be between 2 and 100 characters
     const validKeywordRegex = /^[a-zA-Z0-9_\- .:]{2,100}$/;
     if (!keyword || keyword.trim() === '') {
       return {

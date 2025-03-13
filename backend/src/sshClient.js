@@ -38,7 +38,6 @@ class SSHClient {
           })
           .stderr.on('data', (data) => {
             errorOutput += data.toString();
-            console.log('Error output:', errorOutput);
           })
           .on('close', (code) => {
             resolve({
