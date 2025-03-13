@@ -50,15 +50,13 @@ function configureApp(app) {
 
     // Construct the command with all the parameters, logFile, keyWord and lines
     let command = `sudo `;
-    if (keyWordValidation.value) {
+    if (keyWordValidation.value !== '') {
       // If keyWord is provided, use grep to filter the logs
-        command += `grep -i "${keyWordValidation.value}" /var/log/${logFileValidation.value} | tail -n ${lineValidation.value}`;
+        command += `grep -i "${keyWordValidation.value}" /var/log/${logFileValidation.value} | tail -n ${lineValidation.value} | tac`;
     } else {
         // If no keyWord is provided, use tail to get the last n lines of the log file
-        command += `tail -n ${lineValidation.value} /var/log/${logFileValidation.value}`;
+        command += `tail -n ${lineValidation.value} /var/log/${logFileValidation.value} | tac`;
     }
-
-    console.log(command);
 
     try {
       // Execute command on all servers
