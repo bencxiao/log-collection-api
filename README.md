@@ -4,11 +4,40 @@ A Node.js service that provides centralized log collection from multiple servers
 
 ## Features
 
-- Collect logs from multiple servers simultaneously
-- Filter logs by keywords
-- Limit number of lines returned
-- Configurable log file paths
+1. **Parallel Log Collection**
+   - Simultaneously collects logs from multiple servers
+   - Handles partial failures gracefully
+   - Aggregates results from all servers
 
+2. **Input Validation**
+   - Validates line numbers (positive integer number)
+   - Sanitizes log file paths
+   - Validates keyword filters
+
+## Project Design and Infrastructure
+
+### Architecture Overview
+
+```
+Project Structure
+├── backend/
+│   ├── src/
+│   │   ├── index.js           # Express application entry point
+│   │   ├── sshClient.js       # SSH connection handling
+│   │   ├── utils/
+│   │   │   └── validators.js  # Input validation logic
+│   │   ├── config/
+│   │   │   └── ssh.config.js  # SSH server configurations
+│   │   └── __tests__/        # Test files
+│   └── package.json
+│
+└── frontend/
+    ├── src/
+    │   ├── App.jsx           # Main React component
+    │   ├── App.css          # Application styles
+    │   └── index.jsx        # React entry point
+    └── package.json
+```
 
 ## Running Frontend and Backend Applications
 
