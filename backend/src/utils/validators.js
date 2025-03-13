@@ -37,7 +37,7 @@ class LogParameterValidator {
     }
     return {
       isValid: true,
-      value: logFile || 'large_log.log'
+      value: logFile || 'large_log.log' // Default value if logFile is empty
     };
   }
 
@@ -55,7 +55,7 @@ class LogParameterValidator {
     } 
     return {
       isValid: true,
-      value: keyword || 'error'
+      value: keyword
     };
   }
 }

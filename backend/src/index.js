@@ -49,11 +49,16 @@ function configureApp(app) {
     const clients = sshConfig.map(config => new SSHClient(config));
 
     // Construct the command with all the parameters, logFile, keyWord and lines
-    let command = `sudo cat /var/log/${logFile}`;
-    if (keyWord) {
-        command += ` | grep -i "${keyWord}"`;
+    let command = `sudo `;
+    if (keyWordValidation.value) {
+      // If keyWord is provided, use grep to filter the logs
+        command += `grep -i "${keyWordValidation.value}" /var/log/${logFileValidation.value} | tail -n ${lineValidation.value}`;
+    } else {
+        // If no keyWord is provided, use tail to get the last n lines of the log file
+        command += `tail -n ${lineValidation.value} /var/log/${logFileValidation.value}`;
     }
-    command += ` | tail -n ${lineValidation.value}`;
+
+    console.log(command);
 
     try {
       // Execute command on all servers

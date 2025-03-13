@@ -125,7 +125,7 @@ describe('Log Collection API', () => {
       });
 
       expect(mockSSHClient.executeCommand).toHaveBeenCalledWith(
-        'sudo cat /var/log/large_log.log | tail -n 100'
+        'sudo tail -n 100 /var/log/large_log.log'
       );
     });
 
@@ -174,7 +174,7 @@ describe('Log Collection API', () => {
       });
 
       expect(mockSSHClient.executeCommand).toHaveBeenCalledWith(
-        'sudo cat /var/log/large_log.log | grep -i "ERROR" | tail -n 100'
+        'sudo grep -i "ERROR" /var/log/large_log.log | tail -n 100'
       );
     });
 
@@ -223,7 +223,7 @@ describe('Log Collection API', () => {
       });
 
       expect(mockSSHClient.executeCommand).toHaveBeenCalledWith(
-        'sudo cat /var/log/large_log.log | tail -n 50'
+        'sudo tail -n 50 /var/log/large_log.log'
       );
     });
 
