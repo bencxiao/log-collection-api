@@ -52,12 +52,13 @@ function configureApp(app) {
     let command = `sudo `;
     if (keyWordValidation.value !== '') {
       // If keyWord is provided, use grep to filter the logs
-        command += `grep -i "${keyWordValidation.value}" /var/log/${logFileValidation.value} | tail -n ${lineValidation.value} | tac`;
+        command += `grep -i "${keyWordValidation.value}" "/var/log/${logFileValidation.value}" | tail -n ${lineValidation.value} | tac`;
     } else {
         // If no keyWord is provided, use tail to get the last n lines of the log file
-        command += `tail -n ${lineValidation.value} /var/log/${logFileValidation.value} | tac`;
+        command += `tail -n ${lineValidation.value} "/var/log/${logFileValidation.value}" | tac`;
     }
 
+    console.log('Executing command:', command);
     try {
       // Execute command on all servers
       const results = await Promise.all(
