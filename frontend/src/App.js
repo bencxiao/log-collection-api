@@ -72,7 +72,7 @@ function App() {
               name="logFile"
               value={formData.logFile}
               onChange={handleInputChange}
-              placeholder="Enter log file path"
+              placeholder="Enter log file path, subdirectories are allowed"
             />
           </div>
 
@@ -84,7 +84,9 @@ function App() {
               name="keyWord"
               value={formData.keyWord}
               onChange={handleInputChange}
-              placeholder="Enter keyword to filter"
+              placeholder="Enter keyword to filter, length needs to be between 2 to 100"
+              minLength={2}
+              maxLength={100}
             />
           </div>
 
@@ -120,10 +122,10 @@ function App() {
           {logs.map((serverLog, index) => (
             <div 
               key={serverLog.instance || index} 
-              className={`server-log ${serverLog.success ? 'success' : 'failure'}`}
+              className={`server-log ${serverLog.success && serverLog.error === '' ? 'success' : 'failure'}`}
             >
               <h3>{serverLog.instance}</h3>
-              {serverLog.success ? (
+              {serverLog.success && serverLog.error === '' ? (
                 <pre>{serverLog.logs}</pre>
               ) : (
                 <div className="error-details">

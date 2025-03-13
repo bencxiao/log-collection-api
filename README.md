@@ -105,8 +105,8 @@ Collects logs from configured servers.
 
 **Query Parameters:**
 
-- `logFile` (optional): Path to the log file (default: 'large_log.log')
-- `keyWord` (optional): Filter logs by keyword
+- `logFile` (optional): Path to the log file, subdirectories are allowed (default: 'large_log.log')
+- `keyWord` (optional): Filter logs by keyword, length needs to be between 2 to 100.
 - `lines` (optional): Number of lines to return (default: 100)
 
 **Example Requests:**
@@ -201,3 +201,12 @@ curl "http://localhost:3000/logs/collect?logFile=custom.log"
 ```bash
 npm test
 ```
+
+## Future Improvements and Planned Features
+
+### Backend Improvements
+
+#### Feature Additions
+- Support for multiple log files in a single request, currently only certain file under /var/log is supported
+- Log aggregation across multiple servers
+- Log compression support, compressed log is a common feature on log server now. 

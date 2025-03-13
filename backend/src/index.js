@@ -60,16 +60,15 @@ function configureApp(app) {
 
     console.log('Executing command:', command);
     try {
-      // Execute command on all servers
+      // Execute command on all servers, catching unexpected errors as explicitly failed
       const results = await Promise.all(
         clients.map(async (client, index) => {
           try {
             await client.connect();
             const result = await client.executeCommand(command);
-            const success = result.errorOutput === '';
             return {
               instance: sshConfig[index].host,
-              success: success,
+              success: true,
               logs: result.output,
               error: result.errorOutput,
               details: null

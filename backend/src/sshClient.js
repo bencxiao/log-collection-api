@@ -32,6 +32,7 @@ class SSHClient {
         let output = '';
         let errorOutput = '';
 
+        // Both data retrieved and stderr from the command are collected as success results
         stream
           .on('data', (data) => {
             output += data.toString();

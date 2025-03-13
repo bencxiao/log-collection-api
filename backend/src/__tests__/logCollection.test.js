@@ -295,7 +295,7 @@ describe('Log Collection API', () => {
       });
     });
 
-    it('should handle command execution errors', async () => {
+    it('should handle unexpectedcommand execution errors', async () => {
       // Mock command execution failure
       SSHClient.mockImplementation(() => ({
         connect: jest.fn().mockResolvedValue(),
@@ -375,7 +375,53 @@ describe('Log Collection API', () => {
           },
           {
             instance: 'server2.example.com',
-            success: false,
+            success: true,
+            logs: '',
+            error: `Error: grep: /var/log/large_log.log: No such file or directory`,
+            details: null
+          }
+        ]
+      });
+
+      // Verify command was called twice (once for each server)
+      expect(mockSSHClient.executeCommand).toHaveBeenCalledTimes(2);
+    });
+
+    it('should handle file not found errors on both servers', async () => {
+      let callCount = 0;
+      const mockSSHClient = {
+        connect: jest.fn().mockResolvedValue(),
+        executeCommand: jest.fn().mockImplementation(() => {
+          return Promise.resolve({
+            code: 0,
+            output: '',
+            errorOutput: `Error: grep: /var/log/large_log.log: No such file or directory`
+          });
+        }),
+        disconnect: jest.fn().mockResolvedValue()
+      };
+
+      SSHClient.mockImplementation(() => mockSSHClient);
+
+      const response = await request(app).get('/logs/collect');
+      
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        success: true,
+        logFile: 'large_log.log',
+        keyWord: null,
+        lines: 100,
+        results: [
+          {
+            instance: 'server1.example.com',
+            success: true,
+            logs: '',
+            error: `Error: grep: /var/log/large_log.log: No such file or directory`,
+            details: null
+          },
+          {
+            instance: 'server2.example.com',
+            success: true,
             logs: '',
             error: `Error: grep: /var/log/large_log.log: No such file or directory`,
             details: null
