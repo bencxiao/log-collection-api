@@ -66,11 +66,12 @@ function configureApp(app) {
           try {
             await client.connect();
             const result = await client.executeCommand(command);
+            const success = result.errorOutput === '';
             return {
               instance: sshConfig[index].host,
-              success: true,
+              success: success,
               logs: result.output,
-              error: '',
+              error: result.errorOutput,
               details: null
             };
           } catch (error) {
